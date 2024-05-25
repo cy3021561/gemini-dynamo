@@ -27,12 +27,22 @@ gemini_processor = GeminiProcessor(
 def analyze_video(request: VideoAnalysisRequest):
     # Analizing
     processor = YoutubeProcessor(gemini_processor = gemini_processor)
-    result = processor.retrieve_youtube_documents(str(request.youtube_link))
+    result = processor.retrieve_youtube_documents(str(request.youtube_link), verbose=True)
     
     # summary = gemini_processor.generate_documnet_summary(result, verbose=True)
+    
     # Find key concepts
-    key_concepts = processor.find_key_concepts(result, group_amount=2)
+    raw_concepts = processor.find_key_concepts(result, verbose=True)
+    
+    # Deconstruct mutiple dicts
+    unique_concepts = {}
+    for concept_dict in raw_concepts:
+        for key, value in concept_dict.items():
+            unique_concepts[key] = value
+    
+    # Reconstruct to a list
+    key_concepts_list = [{key: value} for key, value in unique_concepts.items()]
     
     return {
-        "key_concepts": key_concepts
+        "key_concepts": key_concepts_list
     }
